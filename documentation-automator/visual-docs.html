@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visual Documentation Generator - Process Maps & Diagrams</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f5f7fa;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .diagram-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .diagram-card {
+            background: white;
+            border-radius: 10px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .diagram-title {
+            font-size: 1.25rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            color: #2d3748;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 0.75rem 1.5rem;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s;
+        }
+        
+        .btn:hover {
+            background: #5a5ccf;
+        }
+        
+        .btn-secondary {
+            background: #48bb78;
+        }
+        
+        .btn-secondary:hover {
+            background: #38a169;
+        }
+        
+        .process-input {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            font-family: monospace;
+            margin-bottom: 1rem;
+            min-height: 100px;
+        }
+        
+        .svg-container {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 1rem;
+            overflow: auto;
+        }
+        
+        .mermaid {
+            text-align: center;
+        }
+        
+        .tab-nav {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        
+        .tab {
+            padding: 0.75rem 1.5rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            color: #718096;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+        
+        .legend {
+            background: #f7fafc;
+            padding: 1rem;
+            border-radius: 6px;
+            margin-top: 1rem;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="header">
+            <h1>🎨 Visual Documentation Generator</h1>
+            <p>Transform complex processes into clear visual diagrams for better understanding</p>
+        </div>
+        
+        <div class="container">
+            <div class="controls">
+                <button class="btn" @click="generateAllDiagrams">
+                    🚀 Generate All Diagrams
+                </button>
+                <button class="btn btn-secondary" @click="exportDiagrams">
+                    📥 Export as PDF
+                </button>
+                <button class="btn" @click="generateFromCode">
+                    💻 Generate from Code
+                </button>
+            </div>
+
+            <div class="tab-nav">
+                <button 
+                    v-for="tab in tabs" 
+                    :key="tab.id"
+                    @click="activeTab = tab.id"
+                    :class="['tab', { active: activeTab === tab.id }]"
+                >
+                    {{ tab.icon }} {{ tab.name }}
+                </button>
+            </div>
+
+            <!-- Process Flow Tab -->
+            <div v-if="activeTab === 'process'" class="diagram-grid">
+                <div class="diagram-card">
+                    <h3 class="diagram-title">📊 HR System Integration Process</h3>
+                    <div class="svg-container" v-html="dataFlowDiagram"></div>
+                </div>
+                
+                <div class="diagram-card">
+                    <h3 class="diagram-title">🔄 Documentation Generation Workflow</h3>
+                    <div class="mermaid">
+                        graph TB
+                            A[User Request] --> B{Select Source}
+                            B -->|Legacy System| C[DCPDS Parser]
+                            B -->|Modern API| D[API Connector]
+                            B -->|Manual Entry| E[Form Input]
+                            C --> F[Data Normalizer]
+                            D --> F
+                            E --> F
+                            F --> G[AI Enhancement]
+                            G --> H{Output Format}
+                            H -->|Markdown| I[MD Generator]
+                            H -->|HTML| J[HTML Generator]
+                            H -->|PDF| K[PDF Generator]
+                            I --> L[Review & Publish]
+                            J --> L
+                            K --> L
+                            
+                            style A fill:#22c55e,stroke:#16a34a,color:#fff
+                            style L fill:#3b82f6,stroke:#2563eb,color:#fff
+                            style G fill:#f59e0b,stroke:#d97706,color:#fff
+                    </div>
+                </div>
+            </div>
+
+            <!-- Architecture Tab -->
+            <div v-if="activeTab === 'architecture'" class="diagram-grid">
+                <div class="diagram-card">
+                    <h3 class="diagram-title">🏗️ System Architecture</h3>
+                    <div class="mermaid">
+                        graph TB
+                            subgraph "Frontend Layer"
+                                UI[Vue.js Dashboard]
+                                VIS[Visualization Engine]
+                                AUDIO[Audio Interface]
+                            end
+                            
+                            subgraph "Processing Layer"
+                                DOC[Doc Engine]
+                                REV[Review Bot]
+                                FIN[Financial Analyzer]
+                            end
+                            
+                            subgraph "Data Layer"
+                                CACHE[Redis Cache]
+                                DB[Firebase DB]
+                                STORE[File Storage]
+                            end
+                            
+                            subgraph "External Systems"
+                                DCPDS[DCPDS]
+                                HRLINK[HRLink]
+                                ADVANA[Advana]
+                            end
+                            
+                            UI --> DOC
+                            UI --> REV
+                            UI --> FIN
+                            DOC --> CACHE
+                            DOC --> DB
+                            REV --> STORE
+                            FIN --> DB
+                            DOC --> DCPDS
+                            DOC --> HRLINK
+                            FIN --> ADVANA
+                            
+                            style UI fill:#667eea,stroke:#5a67d8,color:#fff
+                            style DOC fill:#48bb78,stroke:#38a169,color:#fff
+                            style DB fill:#ed8936,stroke:#dd6b20,color:#fff
+                    </div>
+                </div>
+                
+                <div class="diagram-card">
+                    <h3 class="diagram-title">🔐 Security Layers</h3>
+                    <div class="mermaid">
+                        graph LR
+                            USER[User] --> AUTH[Authentication]
+                            AUTH --> RBAC[Role-Based Access]
+                            RBAC --> API[API Gateway]
+                            API --> ENCRYPT[Encryption Layer]
+                            ENCRYPT --> DATA[Secure Data]
+                            
+                            style AUTH fill:#ef4444,stroke:#dc2626,color:#fff
+                            style ENCRYPT fill:#10b981,stroke:#059669,color:#fff
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sequence Tab -->
+            <div v-if="activeTab === 'sequence'" class="diagram-grid">
+                <div class="diagram-card">
+                    <h3 class="diagram-title">📝 Document Generation Sequence</h3>
+                    <div class="svg-container" v-html="sequenceDiagram"></div>
+                </div>
+                
+                <div class="diagram-card">
+                    <h3 class="diagram-title">🔄 Real-time Sync Sequence</h3>
+                    <div class="mermaid">
+                        sequenceDiagram
+                            participant U as User
+                            participant A as App
+                            participant C as Cache
+                            participant D as Database
+                            participant E as External API
+                            
+                            U->>A: Request Update
+                            A->>C: Check Cache
+                            alt Cache Hit
+                                C-->>A: Return Cached Data
+                            else Cache Miss
+                                A->>E: Fetch Latest
+                                E-->>A: Return Data
+                                A->>D: Store Update
+                                A->>C: Update Cache
+                            end
+                            A-->>U: Display Results
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mind Map Tab -->
+            <div v-if="activeTab === 'mindmap'" class="diagram-grid">
+                <div class="diagram-card">
+                    <h3 class="diagram-title">🧠 Documentation Structure Mind Map</h3>
+                    <div class="mermaid">
+                        mindmap
+                            root((Documentation Hub))
+                                User Guides
+                                    Quick Start
+                                    Video Tutorials
+                                    FAQs
+                                API Reference
+                                    REST Endpoints
+                                    GraphQL Schema
+                                    WebSocket Events
+                                System Integration
+                                    DCPDS Bridge
+                                    HRLink Connector
+                                    Advana Pipeline
+                                Best Practices
+                                    Security Guidelines
+                                    Performance Tips
+                                    Troubleshooting
+                    </div>
+                </div>
+                
+                <div class="diagram-card">
+                    <h3 class="diagram-title">🎯 Feature Roadmap</h3>
+                    <div class="mermaid">
+                        mindmap
+                            root((Persona Development))
+                                Phase 1
+                                    Documentation Automator
+                                    Basic UI
+                                    Safety Protocols
+                                Phase 2
+                                    Code Review Bot
+                                    Pattern Learning
+                                    Integration APIs
+                                Phase 3
+                                    Financial Planning
+                                    Opportunity Tracking
+                                    Wealth Analytics
+                                Phase 4
+                                    Voice Interface
+                                    ML Enhancement
+                                    Global Scaling
+                    </div>
+                </div>
+            </div>
+
+            <!-- Code to Diagram Tab -->
+            <div v-if="activeTab === 'code'" class="diagram-grid">
+                <div class="diagram-card" style="grid-column: 1 / -1;">
+                    <h3 class="diagram-title">💻 Generate Diagram from Code</h3>
+                    <textarea 
+                        v-model="codeInput" 
+                        class="process-input"
+                        placeholder="Paste your code here to generate a flowchart..."
+                    ></textarea>
+                    <button class="btn" @click="parseCode">Generate Flowchart</button>
+                    
+                    <div v-if="generatedFlowchart" class="svg-container" style="margin-top: 1rem;">
+                        <div class="mermaid" v-html="generatedFlowchart"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Legend -->
+            <div class="legend">
+                <h4>Visual Elements Guide:</h4>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #22c55e;"></div>
+                    <span>Start/Success States</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #3b82f6;"></div>
+                    <span>Processes/Actions</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #f59e0b;"></div>
+                    <span>Decisions/AI Processing</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #ef4444;"></div>
+                    <span>Errors/Security</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Import the ProcessMapGenerator functions
+        const processMapGenerator = {
+            generateDataFlowDiagram() {
+                // This would be imported from ProcessMapGenerator.ts
+                return `<svg viewBox="0 0 1400 900" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Simplified version of the data flow diagram -->
+                    <text x="700" y="50" text-anchor="middle" font-size="24" font-weight="bold">
+                        HR Systems Data Flow
+                    </text>
+                    <!-- ... rest of SVG content ... -->
+                </svg>`;
+            },
+            
+            generateSequenceDiagram() {
+                return `<svg viewBox="0 0 1000 600" xmlns="http://www.w3.org/2000/svg">
+                    <!-- Sequence diagram content -->
+                    <text x="500" y="30" text-anchor="middle" font-size="20" font-weight="bold">
+                        Documentation Generation Sequence
+                    </text>
+                    <!-- ... rest of SVG content ... -->
+                </svg>`;
+            }
+        };
+
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    activeTab: 'process',
+                    tabs: [
+                        { id: 'process', name: 'Process Flow', icon: '📊' },
+                        { id: 'architecture', name: 'Architecture', icon: '🏗️' },
+                        { id: 'sequence', name: 'Sequences', icon: '🔄' },
+                        { id: 'mindmap', name: 'Mind Maps', icon: '🧠' },
+                        { id: 'code', name: 'Code to Diagram', icon: '💻' }
+                    ],
+                    dataFlowDiagram: '',
+                    sequenceDiagram: '',
+                    codeInput: `// Example: Paste your function here
+async function processDocument(doc) {
+    if (!doc.id) {
+        throw new Error('Invalid document');
+    }
+    
+    const parsed = await parseContent(doc);
+    
+    if (parsed.type === 'legacy') {
+        return await handleLegacy(parsed);
+    } else {
+        return await handleModern(parsed);
+    }
+}`,
+                    generatedFlowchart: ''
+                };
+            },
+            methods: {
+                generateAllDiagrams() {
+                    alert('Generating all visual documentation...');
+                    // Would trigger actual generation
+                },
+                
+                exportDiagrams() {
+                    alert('Exporting diagrams as PDF...');
+                    // Would trigger PDF export
+                },
+                
+                generateFromCode() {
+                    this.activeTab = 'code';
+                },
+                
+                parseCode() {
+                    // Simple code parsing example
+                    this.generatedFlowchart = `
+                        graph TD
+                            A[Start: processDocument] --> B{doc.id exists?}
+                            B -->|No| C[Throw Error]
+                            B -->|Yes| D[parseContent]
+                            D --> E{type === 'legacy'?}
+                            E -->|Yes| F[handleLegacy]
+                            E -->|No| G[handleModern]
+                            F --> H[Return Result]
+                            G --> H
+                    `;
+                    
+                    // Re-render mermaid
+                    setTimeout(() => {
+                        mermaid.init();
+                    }, 100);
+                }
+            },
+            mounted() {
+                // Initialize mermaid
+                mermaid.initialize({ 
+                    startOnLoad: true,
+                    theme: 'default',
+                    flowchart: {
+                        useMaxWidth: true,
+                        htmlLabels: true
+                    }
+                });
+                
+                // Load SVG diagrams
+                this.dataFlowDiagram = processMapGenerator.generateDataFlowDiagram();
+                this.sequenceDiagram = processMapGenerator.generateSequenceDiagram();
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
