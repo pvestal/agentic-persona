@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Status & Improvements Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.3.4/dist/vue.global.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        [v-cloak] { display: none; }
+    </style>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900">
+    <div id="app" v-cloak>
+        <div class="min-h-screen p-6">
+            <header class="mb-8">
+                <h1 class="text-4xl font-bold text-gray-800 dark:text-white mb-2">
+                    Project Status & Improvements Dashboard
+                </h1>
+                <p class="text-gray-600 dark:text-gray-300">
+                    Real-time project health, status, and recommended next steps
+                </p>
+            </header>
+
+            <!-- Quick Actions -->
+            <div class="mb-8 bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
+                <h3 class="font-semibold text-blue-800 dark:text-blue-200 mb-2">🚀 Quick Actions</h3>
+                <div class="flex flex-wrap gap-2">
+                    <a href="https://github.com/pvestal/agentic-persona/codespaces/new" target="_blank" 
+                       class="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700">
+                        Open Agentic Persona in Codespace
+                    </a>
+                    <button @click="showImprovements = !showImprovements" 
+                            class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+                        {{ showImprovements ? 'Hide' : 'Show' }} All Improvements
+                    </button>
+                    <a href="https://github.com/pvestal?tab=repositories" target="_blank"
+                       class="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700">
+                        View All GitHub Repos
+                    </a>
+                </div>
+            </div>
+
+            <!-- Project Cards with Health Scores -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div v-for="(project, key) in improvements.projects" :key="key"
+                     class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+                    
+                    <!-- Project Header -->
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-800 dark:text-white">
+                                {{ formatProjectName(key) }}
+                            </h3>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">
+                                Last activity: {{ project.lastActivity }}
+                            </p>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-2xl font-bold" :class="getHealthColor(project.health)">
+                                {{ project.health }}%
+                            </div>
+                            <span :class="getStatusBadge(project.status)">
+                                {{ project.status }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Health Bar -->
+                    <div class="mb-4">
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="h-2 rounded-full transition-all duration-500"
+                                 :class="getHealthBarColor(project.health)"
+                                 :style="{width: project.health + '%'}"></div>
+                        </div>
+                    </div>
+
+                    <!-- Next Steps -->
+                    <div class="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded">
+                        <h4 class="font-semibold text-blue-800 dark:text-blue-200 mb-1">
+                            📋 Next Step:
+                        </h4>
+                        <p class="text-sm text-blue-700 dark:text-blue-300">
+                            {{ project.nextSteps }}
+                        </p>
+                    </div>
+
+                    <!-- Improvements (collapsible) -->
+                    <div v-if="showImprovements || expandedProjects[key]">
+                        <h4 class="font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                            💡 Recommended Improvements:
+                        </h4>
+                        <ul class="space-y-1">
+                            <li v-for="improvement in project.improvements" 
+                                :key="improvement"
+                                class="text-sm text-gray-600 dark:text-gray-400 flex items-start">
+                                <span class="text-green-500 mr-2">✓</span>
+                                {{ improvement }}
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Toggle Button -->
+                    <button @click="expandedProjects[key] = !expandedProjects[key]"
+                            class="mt-4 text-sm text-blue-600 hover:text-blue-800">
+                        {{ expandedProjects[key] ? 'Show Less' : 'Show Improvements' }}
+                    </button>
+                </div>
+            </div>
+
+            <!-- Global Recommendations -->
+            <div class="mt-8 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+                <h2 class="text-2xl font-bold text-gray-800 dark:text-white mb-4">
+                    🎯 Global Recommendations
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div v-for="rec in improvements.globalRecommendations"
+                         :key="rec"
+                         class="flex items-start">
+                        <span class="text-amber-500 mr-2 mt-1">⚡</span>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">{{ rec }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Summary Stats -->
+            <div class="mt-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg shadow-lg p-6 text-white">
+                <h2 class="text-2xl font-bold mb-4">📊 Portfolio Summary</h2>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div>
+                        <p class="text-3xl font-bold">{{ Object.keys(improvements.projects).length }}</p>
+                        <p class="text-sm opacity-90">Total Projects</p>
+                    </div>
+                    <div>
+                        <p class="text-3xl font-bold">{{ averageHealth }}%</p>
+                        <p class="text-sm opacity-90">Avg Health Score</p>
+                    </div>
+                    <div>
+                        <p class="text-3xl font-bold">{{ totalImprovements }}</p>
+                        <p class="text-sm opacity-90">Total Improvements</p>
+                    </div>
+                    <div>
+                        <p class="text-3xl font-bold">{{ activeCount }}</p>
+                        <p class="text-sm opacity-90">Active Projects</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref, computed, onMounted } = Vue;
+
+        createApp({
+            setup() {
+                const showImprovements = ref(false);
+                const expandedProjects = ref({});
+                const improvements = ref({ projects: {}, globalRecommendations: [] });
+
+                const loadImprovements = async () => {
+                    try {
+                        const response = await fetch('./project-improvements.json');
+                        improvements.value = await response.json();
+                    } catch (error) {
+                        console.error('Failed to load improvements:', error);
+                    }
+                };
+
+                const formatProjectName = (key) => {
+                    const names = {
+                        'cannabis-finder': 'Cannabis Finder',
+                        'MotorcycleWkspMgtApp': 'Motorcycle Workshop Manager',
+                        'vuebudgetfire': 'Vue Budget Fire',
+                        'UFC-Betting-System': 'UFC Betting System',
+                        'music-service-proxy': 'Music Service Proxy',
+                        'color-harmony': 'Color Harmony',
+                        'receipt-scanner': 'Receipt Scanner',
+                        'agentic-persona': 'Agentic Persona'
+                    };
+                    return names[key] || key;
+                };
+
+                const getHealthColor = (health) => {
+                    if (health >= 85) return 'text-green-600';
+                    if (health >= 70) return 'text-yellow-600';
+                    return 'text-red-600';
+                };
+
+                const getHealthBarColor = (health) => {
+                    if (health >= 85) return 'bg-green-500';
+                    if (health >= 70) return 'bg-yellow-500';
+                    return 'bg-red-500';
+                };
+
+                const getStatusBadge = (status) => {
+                    const classes = {
+                        'active': 'px-2 py-1 bg-green-100 text-green-800 rounded text-xs font-medium',
+                        'maintenance': 'px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-xs font-medium',
+                        'inactive': 'px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs font-medium'
+                    };
+                    return classes[status] || classes.inactive;
+                };
+
+                const averageHealth = computed(() => {
+                    const projects = Object.values(improvements.value.projects);
+                    if (!projects.length) return 0;
+                    const sum = projects.reduce((acc, p) => acc + p.health, 0);
+                    return Math.round(sum / projects.length);
+                });
+
+                const totalImprovements = computed(() => {
+                    return Object.values(improvements.value.projects)
+                        .reduce((acc, p) => acc + p.improvements.length, 0);
+                });
+
+                const activeCount = computed(() => {
+                    return Object.values(improvements.value.projects)
+                        .filter(p => p.status === 'active').length;
+                });
+
+                onMounted(() => {
+                    loadImprovements();
+                });
+
+                return {
+                    showImprovements,
+                    expandedProjects,
+                    improvements,
+                    formatProjectName,
+                    getHealthColor,
+                    getHealthBarColor,
+                    getStatusBadge,
+                    averageHealth,
+                    totalImprovements,
+                    activeCount
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
