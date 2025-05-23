@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Dashboard - Patrick's Development Portfolio</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@3.3.4/dist/vue.global.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        [v-cloak] { display: none; }
+    </style>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900">
+    <div id="app" v-cloak>
+        <project-dashboard></project-dashboard>
+    </div>
+
+    <script type="module">
+        const { createApp } = Vue;
+
+        const ProjectDashboard = {
+            template: `
+                <div class="min-h-screen p-6">
+                    <header class="mb-8">
+                        <h1 class="text-4xl font-bold text-gray-800 dark:text-white mb-2">
+                            Development Projects Dashboard
+                        </h1>
+                        <p class="text-gray-600 dark:text-gray-300">
+                            Unified view of all projects, their status, and development progress
+                        </p>
+                    </header>
+
+                    <!-- Stats Overview -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                            <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Active Projects</h3>
+                            <p class="text-2xl font-bold text-green-600 dark:text-green-400">{{ activeProjects }}</p>
+                        </div>
+                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                            <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Projects</h3>
+                            <p class="text-2xl font-bold text-blue-600 dark:text-blue-400">{{ projects.length }}</p>
+                        </div>
+                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                            <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Tech Stack</h3>
+                            <p class="text-2xl font-bold text-purple-600 dark:text-purple-400">Vue 3 + TS</p>
+                        </div>
+                        <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                            <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Storage Used</h3>
+                            <p class="text-2xl font-bold text-orange-600 dark:text-orange-400">~2.5GB</p>
+                        </div>
+                    </div>
+
+                    <!-- Filter Tabs -->
+                    <div class="mb-6 flex space-x-4">
+                        <button 
+                            v-for="category in categories" 
+                            :key="category"
+                            @click="selectedCategory = category"
+                            :class="[
+                                'px-4 py-2 rounded-lg font-medium transition',
+                                selectedCategory === category 
+                                    ? 'bg-blue-600 text-white' 
+                                    : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300'
+                            ]"
+                        >
+                            {{ category }}
+                        </button>
+                    </div>
+
+                    <!-- Projects Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div 
+                            v-for="project in filteredProjects" 
+                            :key="project.id"
+                            class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 hover:shadow-xl transition"
+                        >
+                            <div class="flex justify-between items-start mb-4">
+                                <h3 class="text-xl font-bold text-gray-800 dark:text-white">
+                                    {{ project.name }}
+                                </h3>
+                                <span :class="[
+                                    'px-2 py-1 rounded text-xs font-medium',
+                                    project.status === 'active' ? 'bg-green-100 text-green-800' :
+                                    project.status === 'maintenance' ? 'bg-yellow-100 text-yellow-800' :
+                                    'bg-gray-100 text-gray-800'
+                                ]">
+                                    {{ project.status }}
+                                </span>
+                            </div>
+                            
+                            <p class="text-gray-600 dark:text-gray-400 mb-4">
+                                {{ project.description }}
+                            </p>
+
+                            <div class="mb-4">
+                                <div class="flex flex-wrap gap-2 mb-2">
+                                    <span 
+                                        v-for="tech in project.tech" 
+                                        :key="tech"
+                                        class="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded text-xs"
+                                    >
+                                        {{ tech }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="flex justify-between items-center">
+                                <div class="flex space-x-3">
+                                    <a 
+                                        v-if="project.github"
+                                        :href="project.github" 
+                                        target="_blank"
+                                        class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                                    >
+                                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                                        </svg>
+                                    </a>
+                                    <button 
+                                        v-if="project.hasCodespace"
+                                        @click="openCodespace(project)"
+                                        class="text-purple-500 hover:text-purple-700"
+                                        title="Open in Codespace"
+                                    >
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <span class="text-sm text-gray-500 dark:text-gray-400">
+                                    {{ project.lastUpdated }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cleanup Actions -->
+                    <div class="mt-12 bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                        <h2 class="text-2xl font-bold text-gray-800 dark:text-white mb-4">
+                            Storage Optimization
+                        </h2>
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600 dark:text-gray-400">
+                                    Remove all node_modules (784 folders, ~1.8GB)
+                                </span>
+                                <button @click="cleanupNodeModules" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+                                    Clean
+                                </button>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600 dark:text-gray-400">
+                                    Remove all dist folders (2,159 folders, ~500MB)
+                                </span>
+                                <button @click="cleanupDist" class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+                                    Clean
+                                </button>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-600 dark:text-gray-400">
+                                    Archive inactive projects
+                                </span>
+                                <button @click="archiveInactive" class="px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700">
+                                    Archive
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `,
+            data() {
+                return {
+                    selectedCategory: 'All',
+                    categories: ['All', 'Active', 'Business', 'Finance', 'Entertainment', 'Developer Tools'],
+                    projects: [
+                        {
+                            id: 'agentic-persona',
+                            name: 'Agentic Persona',
+                            description: 'AI agent development framework with Claude integration',
+                            category: 'Developer Tools',
+                            status: 'active',
+                            tech: ['TypeScript', 'Vue 3', 'Claude API'],
+                            github: 'https://github.com/pvestal/agentic-persona',
+                            hasCodespace: true,
+                            lastUpdated: 'Just now'
+                        },
+                        {
+                            id: 'cannabis-finder',
+                            name: 'Cannabis Finder',
+                            description: 'Strain recommendation system with dispensary locator',
+                            category: 'Business',
+                            status: 'active',
+                            tech: ['Vue 3', 'TypeScript', 'Firebase', 'Tailwind'],
+                            github: 'https://github.com/pvestal/cannabis-finder',
+                            hasCodespace: false,
+                            lastUpdated: '2 days ago'
+                        },
+                        {
+                            id: 'motorcycle-wksp',
+                            name: 'Motorcycle Workshop Manager',
+                            description: 'Complete workshop management with payments and inventory',
+                            category: 'Business',
+                            status: 'active',
+                            tech: ['Vue 3', 'TypeScript', 'Firebase', 'Stripe', 'PayPal'],
+                            github: 'https://github.com/pvestal/MotorcycleWkspMgtApp',
+                            hasCodespace: false,
+                            lastUpdated: '1 week ago'
+                        },
+                        {
+                            id: 'vuebudgetfire',
+                            name: 'Vue Budget Fire',
+                            description: 'Personal finance management with Plaid integration',
+                            category: 'Finance',
+                            status: 'active',
+                            tech: ['Vue 3', 'Firebase', 'Plaid API', 'Tailwind'],
+                            github: 'https://github.com/pvestal/vuebudgetfire',
+                            hasCodespace: false,
+                            lastUpdated: '3 days ago'
+                        },
+                        {
+                            id: 'ufc-betting',
+                            name: 'UFC Betting System',
+                            description: 'ML-powered sports betting analysis platform',
+                            category: 'Finance',
+                            status: 'active',
+                            tech: ['R', 'Python', 'Vue 3', 'TypeScript'],
+                            github: null,
+                            hasCodespace: false,
+                            lastUpdated: '1 month ago'
+                        },
+                        {
+                            id: 'music-proxy',
+                            name: 'Music Service Proxy',
+                            description: 'Multi-service music streaming aggregator',
+                            category: 'Developer Tools',
+                            status: 'active',
+                            tech: ['TypeScript', 'Node.js', 'Vue 3'],
+                            github: 'https://github.com/pvestal/music-service-proxy',
+                            hasCodespace: false,
+                            lastUpdated: '5 days ago'
+                        },
+                        {
+                            id: 'color-harmony',
+                            name: 'Color Harmony',
+                            description: 'Music and color therapy game',
+                            category: 'Entertainment',
+                            status: 'maintenance',
+                            tech: ['Vue 3', 'TypeScript', 'Web Audio API'],
+                            github: 'https://github.com/pvestal/color-harmony',
+                            hasCodespace: false,
+                            lastUpdated: '2 weeks ago'
+                        },
+                        {
+                            id: 'receipt-scanner',
+                            name: 'Receipt Scanner',
+                            description: 'OCR-powered receipt management',
+                            category: 'Finance',
+                            status: 'maintenance',
+                            tech: ['Vue 3', 'Tesseract.js', 'Firebase'],
+                            github: 'https://github.com/pvestal/receipt-scanner',
+                            hasCodespace: false,
+                            lastUpdated: '1 month ago'
+                        },
+                        {
+                            id: 'procrastinator99',
+                            name: 'Procrastinator 99',
+                            description: 'Gamified task management system',
+                            category: 'Entertainment',
+                            status: 'inactive',
+                            tech: ['Vue 3', 'Firebase'],
+                            github: 'https://github.com/pvestal/procrastinator99',
+                            hasCodespace: false,
+                            lastUpdated: '3 months ago'
+                        }
+                    ]
+                }
+            },
+            computed: {
+                activeProjects() {
+                    return this.projects.filter(p => p.status === 'active').length;
+                },
+                filteredProjects() {
+                    if (this.selectedCategory === 'All') return this.projects;
+                    if (this.selectedCategory === 'Active') {
+                        return this.projects.filter(p => p.status === 'active');
+                    }
+                    return this.projects.filter(p => p.category === this.selectedCategory);
+                }
+            },
+            methods: {
+                openCodespace(project) {
+                    if (project.github) {
+                        window.open(`${project.github}/codespaces/new`, '_blank');
+                    }
+                },
+                cleanupNodeModules() {
+                    if (confirm('This will remove all node_modules folders. Projects will need to run npm install again. Continue?')) {
+                        alert('Run: find /home/patrick/Documents -name "node_modules" -type d -prune -exec rm -rf {} +');
+                    }
+                },
+                cleanupDist() {
+                    if (confirm('This will remove all dist/build folders. Continue?')) {
+                        alert('Run: find /home/patrick/Documents -name "dist" -type d -prune -exec rm -rf {} +');
+                    }
+                },
+                archiveInactive() {
+                    alert('Archive functionality will move inactive projects to an archive folder');
+                }
+            }
+        };
+
+        createApp({
+            components: {
+                ProjectDashboard
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>

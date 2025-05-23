@@ -1,0 +1,73 @@
+{
+  "developer": {
+    "name": "Patrick Vestal",
+    "preferredStack": {
+      "frontend": ["Vue 3", "TypeScript", "Tailwind CSS", "Vite"],
+      "backend": ["Firebase", "Node.js", "Express"],
+      "database": ["Firestore", "PostgreSQL"],
+      "auth": ["Firebase Auth", "MFA enabled"],
+      "payments": ["Stripe", "PayPal"],
+      "deployment": ["Vercel", "Firebase Hosting"]
+    },
+    "codingPreferences": {
+      "language": "TypeScript over JavaScript",
+      "framework": "Vue 3 Composition API",
+      "styling": "Tailwind CSS utility-first",
+      "stateManagement": "Pinia over Vuex",
+      "buildTool": "Vite over Webpack",
+      "packageManager": "npm",
+      "versionControl": {
+        "platform": "GitHub",
+        "defaultBranch": "main",
+        "privateByDefault": true
+      }
+    },
+    "projectPatterns": {
+      "structure": "feature-based organization",
+      "naming": "kebab-case for files, PascalCase for components",
+      "testing": "Jest for unit tests",
+      "documentation": "Markdown files in project root",
+      "envFiles": ".env for secrets, never committed"
+    }
+  },
+  "projectCategories": {
+    "business": {
+      "focus": ["SaaS applications", "Workshop management", "Cannabis industry"],
+      "features": ["Payment processing", "Inventory management", "User subscriptions"]
+    },
+    "finance": {
+      "focus": ["Personal budgeting", "Receipt tracking", "Sports betting analysis"],
+      "integrations": ["Plaid API", "OCR technology", "ML predictions"]
+    },
+    "developerTools": {
+      "focus": ["AI integration", "API proxies", "Development utilities"],
+      "technologies": ["Claude API", "Service aggregation", "Automation"]
+    },
+    "entertainment": {
+      "focus": ["Gamification", "Interactive experiences", "Wellness apps"],
+      "features": ["Game mechanics", "Progress tracking", "User engagement"]
+    }
+  },
+  "workflowPreferences": {
+    "git": {
+      "commitStyle": "conventional commits",
+      "branchNaming": "feature/*, fix/*, docs/*",
+      "pullRequests": "always create PR for review"
+    },
+    "development": {
+      "localFirst": "develop locally, deploy when ready",
+      "hotReload": "Vite HMR for fast development",
+      "debugging": "Vue DevTools, Chrome DevTools"
+    },
+    "deployment": {
+      "staging": "test in staging before production",
+      "ci": "GitHub Actions for automated testing",
+      "monitoring": "Firebase Analytics, Sentry for errors"
+    }
+  },
+  "cleanupRules": {
+    "ignore": ["node_modules", "dist", ".env", "*.log"],
+    "archive": ["inactive projects after 6 months"],
+    "backup": ["before major refactoring"]
+  }
+}
