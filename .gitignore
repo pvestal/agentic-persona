@@ -79,3 +79,28 @@ firebase-credentials.json
 # Production builds
 dist/
 build/
+# Personal configuration
+personal_config.py
+personal_settings.json
+vip_contacts.txt
+
+# Cost tracking
+costs/
+usage_tracking.json
+EMERGENCY_SHUTDOWN.flag
+
+# Local development
+*.local
+.env.local
+.env.production
+
+# API keys and secrets
+api_keys.json
+credentials/
+*.key
+*.pem
+
+# Personal data
+user_data/
+conversations/
+learning_data/
