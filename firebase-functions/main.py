@@ -5,6 +5,7 @@ Handles backend API endpoints in serverless environment
 
 import os
 import json
+import random
 from typing import Dict, Any, Optional
 from datetime import datetime
 
@@ -26,6 +27,8 @@ CORS(app)
 # Import our services and integrations
 from integrations.gmail import GmailIntegration
 from integrations.slack import SlackIntegration
+from integrations.telegram import TelegramIntegration
+from integrations.sms import SMSIntegration
 
 # For demo purposes, we'll create simplified versions of these services
 # In production, you'd copy the actual services from echo-backend
@@ -69,6 +72,8 @@ responder = AutonomousResponder()
 learning_system = SimpleLearningSystem()
 gmail_integration = GmailIntegration()
 slack_integration = SlackIntegration()
+telegram_integration = TelegramIntegration()
+sms_integration = SMSIntegration()
 
 # === Authentication Middleware ===
 def verify_auth_token(req):
@@ -257,11 +262,141 @@ def gmail_callback():
         return jsonify({'error': 'Unauthorized'}), 401
     
     code = request.get_json().get('code')
+    state = request.get_json().get('state')
     
-    # Exchange code for tokens and store securely
-    # This would use Google OAuth2 library
+    # Exchange code for tokens
+    tokens = gmail_integration.exchange_code(code, state)
+    
+    # Store tokens securely in Firestore
+    user_ref = db.collection('users').document(user['uid'])
+    user_ref.update({
+        'integrations.gmail': {
+            'connected': True,
+            'tokens': tokens,  # In production, encrypt these
+            'connectedAt': firestore.SERVER_TIMESTAMP
+        }
+    })
     
     return jsonify({'success': True})
+
+# === Telegram Integration ===
+@app.route('/api/integrations/telegram/connect', methods=['POST'])
+def telegram_connect():
+    """Connect Telegram account"""
+    user = verify_auth_token(request)
+    if not user:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    # Generate unique connection token
+    connection_token = f"echo_{user['uid'][:8]}"
+    
+    # Store pending connection
+    db.collection('telegram_connections').document(connection_token).set({
+        'userId': user['uid'],
+        'status': 'pending',
+        'createdAt': firestore.SERVER_TIMESTAMP
+    })
+    
+    return jsonify({
+        'bot_username': os.environ.get('TELEGRAM_BOT_USERNAME', 'echo_bot'),
+        'connection_token': connection_token,
+        'instructions': f"Open Telegram and send /start {connection_token} to the bot"
+    })
+
+@app.route('/api/integrations/telegram/webhook', methods=['POST'])
+def telegram_webhook():
+    """Handle Telegram webhook updates"""
+    update = request.get_json()
+    
+    # Process with Telegram integration
+    # This would handle incoming messages and commands
+    
+    return jsonify({'ok': True})
+
+# === SMS Integration ===
+@app.route('/api/integrations/sms/connect', methods=['POST'])
+def sms_connect():
+    """Connect SMS via phone number verification"""
+    user = verify_auth_token(request)
+    if not user:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    phone_number = request.get_json().get('phone_number')
+    
+    # Verify phone number
+    verification = sms_integration.verify_phone_number(phone_number)
+    
+    if verification['valid']:
+        # Generate verification code
+        verification_code = str(random.randint(100000, 999999))
+        
+        # Store pending verification
+        db.collection('sms_verifications').document(user['uid']).set({
+            'phone_number': verification['phone_number'],
+            'code': verification_code,
+            'createdAt': firestore.SERVER_TIMESTAMP,
+            'verified': False
+        })
+        
+        # Send verification SMS
+        sms_integration.send_sms(
+            verification['phone_number'],
+            f"Your ECHO verification code is: {verification_code}"
+        )
+        
+        return jsonify({
+            'success': True,
+            'phone_number': verification['national_format']
+        })
+    else:
+        return jsonify({
+            'success': False,
+            'error': 'Invalid phone number'
+        }), 400
+
+@app.route('/api/integrations/sms/verify', methods=['POST'])
+def sms_verify():
+    """Verify SMS code"""
+    user = verify_auth_token(request)
+    if not user:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    code = request.get_json().get('code')
+    
+    # Check verification code
+    verification_doc = db.collection('sms_verifications').document(user['uid']).get()
+    
+    if verification_doc.exists:
+        verification = verification_doc.to_dict()
+        
+        if verification['code'] == code and not verification['verified']:
+            # Update user with verified phone
+            user_ref = db.collection('users').document(user['uid'])
+            user_ref.update({
+                'integrations.sms': {
+                    'connected': True,
+                    'phone_number': verification['phone_number'],
+                    'connectedAt': firestore.SERVER_TIMESTAMP
+                }
+            })
+            
+            # Mark as verified
+            db.collection('sms_verifications').document(user['uid']).update({
+                'verified': True
+            })
+            
+            return jsonify({'success': True})
+    
+    return jsonify({'error': 'Invalid code'}), 400
+
+@app.route('/api/integrations/sms/webhook', methods=['POST'])
+def sms_webhook():
+    """Handle incoming SMS from Twilio"""
+    # Verify webhook signature
+    # Process incoming SMS
+    response = sms_integration.handle_incoming_sms(request.form.to_dict())
+    
+    return response, 200, {'Content-Type': 'text/xml'}
 
 # === Export Cloud Functions ===
 @https_fn.on_request(
