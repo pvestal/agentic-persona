@@ -96,6 +96,26 @@ uvicorn main:app --reload
 
 Visit `http://localhost:5173` to see ECHO in action!
 
+## 🎮 Live Demos
+
+### Reactive Head Animation
+See ECHO's reactive behaviors in action:
+```
+http://localhost:8000/static/reactive-head-demo.html
+```
+
+Features:
+- Real-time facial expressions based on agent state
+- WebSocket integration for live updates
+- Interactive controls to trigger behaviors
+- Visual feedback for notifications and alerts
+
+### Audio Demo
+Test ECHO's voice capabilities:
+```
+http://localhost:8000/static/audio-demo.html
+```
+
 ## 🧪 Testing
 
 ECHO includes comprehensive test coverage for both backend and frontend components.
