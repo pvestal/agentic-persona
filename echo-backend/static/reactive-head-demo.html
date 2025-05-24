@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ECHO Reactive Head Demo</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 20px;
+        }
+
+        .head-container {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 40px;
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .controls {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .ai-head {
+            position: relative;
+            width: 250px;
+            height: 250px;
+            margin-bottom: 30px;
+        }
+
+        .head-base {
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            background: linear-gradient(145deg, #4a90e2, #3a7bd5);
+            border-radius: 100px 100px 100px 100px;
+            top: 25px;
+            left: 25px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .eye {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: #ffffff;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+        }
+
+        .eye::after {
+            content: '';
+            position: absolute;
+            width: 15px;
+            height: 15px;
+            background: #333;
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            transition: all 0.2s ease;
+        }
+
+        .eye.left { left: 70px; top: 80px; }
+        .eye.right { right: 70px; top: 80px; }
+
+        .mouth {
+            position: absolute;
+            width: 80px;
+            height: 20px;
+            border: 3px solid #333;
+            border-top: none;
+            border-radius: 0 0 40px 40px;
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            transition: all 0.3s ease;
+        }
+
+        /* Reactive States */
+        .ai-head.thinking .head-base {
+            animation: thinking-pulse 2s ease-in-out infinite;
+        }
+
+        .ai-head.alert .head-base {
+            background: linear-gradient(145deg, #e24a4a, #d53a3a);
+            animation: alert-shake 0.5s ease-in-out;
+        }
+
+        .ai-head.happy .mouth {
+            border-radius: 0 0 50px 50px;
+            height: 30px;
+        }
+
+        .ai-head.processing .eye::after {
+            animation: eye-scan 1s linear infinite;
+        }
+
+        .ai-head.notification {
+            animation: bounce 0.5s ease-out;
+        }
+
+        @keyframes thinking-pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.8; }
+        }
+
+        @keyframes alert-shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        @keyframes eye-scan {
+            0% { transform: translate(-50%, -50%) translateX(-5px); }
+            50% { transform: translate(-50%, -50%) translateX(5px); }
+            100% { transform: translate(-50%, -50%) translateX(-5px); }
+        }
+
+        @keyframes bounce {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+            100% { transform: translateY(0); }
+        }
+
+        /* UI Elements */
+        .notification {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .behavior-list {
+            margin-top: 20px;
+        }
+
+        .behavior-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .behavior-item:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .behavior-item.triggered {
+            background: rgba(76, 175, 80, 0.3);
+        }
+
+        button {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+            margin: 5px 0;
+        }
+
+        button:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .status {
+            text-align: center;
+            margin-top: 20px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 5px;
+        }
+
+        .context-display {
+            font-size: 12px;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>ECHO Reactive Head Demo</h1>
+    
+    <div class="container">
+        <div class="head-container">
+            <div class="ai-head" id="aiHead">
+                <div class="head-base"></div>
+                <div class="eye left"></div>
+                <div class="eye right"></div>
+                <div class="mouth"></div>
+            </div>
+            
+            <div class="status" id="status">Connecting...</div>
+            
+            <div id="notifications"></div>
+        </div>
+        
+        <div class="controls">
+            <h3>Simulate Events</h3>
+            <button onclick="simulateEvent('message_received', {priority: 'high'})">
+                📨 Receive Important Message
+            </button>
+            <button onclick="simulateEvent('user_inactive')">
+                😴 Simulate Inactivity
+            </button>
+            <button onclick="simulateEvent('user_active')">
+                👋 Become Active
+            </button>
+            <button onclick="triggerBehavior('daily_summary')">
+                📊 Trigger Daily Summary
+            </button>
+            
+            <h3>Active Behaviors</h3>
+            <div class="behavior-list" id="behaviorList"></div>
+            
+            <h3>Context</h3>
+            <div class="context-display" id="contextDisplay"></div>
+        </div>
+    </div>
+
+    <script>
+        let ws = null;
+        const aiHead = document.getElementById('aiHead');
+        const status = document.getElementById('status');
+        const notifications = document.getElementById('notifications');
+        const behaviorList = document.getElementById('behaviorList');
+        const contextDisplay = document.getElementById('contextDisplay');
+
+        // Head state management
+        function setHeadState(state) {
+            aiHead.className = 'ai-head ' + state;
+            
+            // Auto-reset some states
+            if (state === 'alert' || state === 'notification') {
+                setTimeout(() => {
+                    aiHead.className = 'ai-head';
+                }, 2000);
+            }
+        }
+
+        // Connect to WebSocket
+        function connectWebSocket() {
+            ws = new WebSocket('ws://localhost:8000/ws');
+            
+            ws.onopen = () => {
+                status.textContent = 'Connected to ECHO';
+                setHeadState('happy');
+                loadBehaviors();
+            };
+            
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                handleWebSocketMessage(data);
+            };
+            
+            ws.onclose = () => {
+                status.textContent = 'Disconnected - Reconnecting...';
+                setHeadState('');
+                setTimeout(connectWebSocket, 3000);
+            };
+            
+            ws.onerror = (error) => {
+                console.error('WebSocket error:', error);
+                status.textContent = 'Connection error';
+            };
+        }
+
+        // Handle incoming WebSocket messages
+        function handleWebSocketMessage(data) {
+            if (data.type === 'reactive_notification') {
+                handleNotification(data.notification);
+            } else if (data.type === 'message_processed') {
+                setHeadState('processing');
+                showNotification('Message processed: ' + data.result.response);
+            }
+        }
+
+        // Handle reactive notifications
+        function handleNotification(notification) {
+            setHeadState('notification');
+            
+            const notifEl = document.createElement('div');
+            notifEl.className = 'notification';
+            
+            let content = `<strong>${notification.type}</strong><br>`;
+            
+            if (notification.content) {
+                if (notification.content.message) {
+                    content += notification.content.message;
+                } else {
+                    content += JSON.stringify(notification.content, null, 2);
+                }
+            }
+            
+            notifEl.innerHTML = content;
+            notifications.appendChild(notifEl);
+            
+            // Remove old notifications
+            if (notifications.children.length > 3) {
+                notifications.removeChild(notifications.firstChild);
+            }
+            
+            // Update behavior list to show triggered
+            updateBehaviorDisplay();
+        }
+
+        // Show notification
+        function showNotification(message) {
+            const notifEl = document.createElement('div');
+            notifEl.className = 'notification';
+            notifEl.textContent = message;
+            notifications.appendChild(notifEl);
+            
+            if (notifications.children.length > 3) {
+                notifications.removeChild(notifications.firstChild);
+            }
+        }
+
+        // Load behaviors
+        async function loadBehaviors() {
+            try {
+                const response = await fetch('http://localhost:8000/api/behaviors/');
+                const data = await response.json();
+                
+                displayBehaviors(data.behaviors);
+                updateContext(data.context);
+            } catch (error) {
+                console.error('Failed to load behaviors:', error);
+            }
+        }
+
+        // Display behaviors
+        function displayBehaviors(behaviors) {
+            behaviorList.innerHTML = '';
+            behaviors.forEach(behavior => {
+                const item = document.createElement('div');
+                item.className = 'behavior-item';
+                item.innerHTML = `
+                    <strong>${behavior.name}</strong><br>
+                    <small>${behavior.description}</small><br>
+                    <small>Triggered: ${behavior.trigger_count} times</small>
+                `;
+                item.onclick = () => triggerBehavior(behavior.name);
+                behaviorList.appendChild(item);
+            });
+        }
+
+        // Update behavior display
+        async function updateBehaviorDisplay() {
+            await loadBehaviors();
+        }
+
+        // Update context display
+        function updateContext(context) {
+            contextDisplay.textContent = JSON.stringify(context, null, 2);
+        }
+
+        // Simulate event
+        async function simulateEvent(eventType, additionalData = {}) {
+            setHeadState('thinking');
+            
+            try {
+                const response = await fetch('http://localhost:8000/api/behaviors/simulate-event', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        type: eventType,
+                        ...additionalData
+                    })
+                });
+                
+                if (response.ok) {
+                    setHeadState('happy');
+                    showNotification(`Event simulated: ${eventType}`);
+                    setTimeout(loadBehaviors, 500);
+                }
+            } catch (error) {
+                setHeadState('alert');
+                console.error('Failed to simulate event:', error);
+            }
+        }
+
+        // Trigger behavior manually
+        async function triggerBehavior(behaviorName) {
+            setHeadState('processing');
+            
+            try {
+                const response = await fetch(`http://localhost:8000/api/behaviors/trigger/${behaviorName}`, {
+                    method: 'POST'
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    setHeadState('happy');
+                    showNotification(`Triggered: ${behaviorName}`);
+                    setTimeout(loadBehaviors, 500);
+                }
+            } catch (error) {
+                setHeadState('alert');
+                console.error('Failed to trigger behavior:', error);
+            }
+        }
+
+        // Initialize
+        connectWebSocket();
+        
+        // Periodic context update
+        setInterval(loadBehaviors, 10000);
+    </script>
+</body>
+</html>
