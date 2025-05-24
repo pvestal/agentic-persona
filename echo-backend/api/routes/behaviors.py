@@ -5,7 +5,7 @@ from fastapi import APIRouter, HTTPException
 from typing import Dict, Any, List
 from datetime import datetime
 
-from services.agent_manager import agent_manager
+# Import will be done at runtime to avoid circular import
 
 router = APIRouter(
     prefix="/behaviors",
@@ -15,6 +15,8 @@ router = APIRouter(
 @router.get("/")
 async def get_behaviors() -> Dict[str, Any]:
     """Get all registered behaviors"""
+    from main import agent_manager
+    
     behaviors = []
     for name, behavior in agent_manager.behavior_engine.behaviors.items():
         behaviors.append({
@@ -35,6 +37,8 @@ async def get_behaviors() -> Dict[str, Any]:
 @router.post("/trigger/{behavior_name}")
 async def trigger_behavior(behavior_name: str) -> Dict[str, Any]:
     """Manually trigger a specific behavior"""
+    from main import agent_manager
+    
     result = await agent_manager.trigger_behavior(behavior_name)
     
     if result is None:
@@ -50,6 +54,8 @@ async def trigger_behavior(behavior_name: str) -> Dict[str, Any]:
 @router.post("/context")
 async def update_context(updates: Dict[str, Any]) -> Dict[str, Any]:
     """Update behavior engine context"""
+    from main import agent_manager
+    
     await agent_manager.update_behavior_context(updates)
     
     return {
@@ -61,6 +67,8 @@ async def update_context(updates: Dict[str, Any]) -> Dict[str, Any]:
 @router.post("/simulate-event")
 async def simulate_event(event_data: Dict[str, Any]) -> Dict[str, Any]:
     """Simulate an event to test reactive behaviors"""
+    from main import agent_manager
+    
     event_type = event_data.get("type", "generic")
     
     if event_type == "message_received":

@@ -11,7 +11,7 @@ import uvicorn
 from typing import Dict, Any
 
 from config.settings import settings
-from api.routes import agents, messages, evolution, auth, style, i18n, audio, behaviors
+from api.routes import agents, messages, evolution, auth, style, i18n, audio, behaviors, learning
 from services.database import init_db
 from services.agent_manager import AgentManager
 from agents.evolution_engine import EvolutionEngine
@@ -68,6 +68,7 @@ app.include_router(style.router, prefix="/api/style", tags=["style"])
 app.include_router(i18n.router, prefix="/api/i18n", tags=["internationalization"])
 app.include_router(audio.router, prefix="/api/audio", tags=["audio"])
 app.include_router(behaviors.router, prefix="/api/behaviors", tags=["behaviors"])
+app.include_router(learning.router, prefix="/api/learning", tags=["learning"])
 
 @app.get("/")
 async def root():

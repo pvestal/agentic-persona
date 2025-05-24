@@ -1,0 +1,35 @@
+PERSONAL USE LICENSE
+
+Copyright (c) 2025 pvestal
+
+This software and associated documentation files (the "Software") are provided 
+for PERSONAL REFERENCE ONLY.
+
+PERMISSIONS:
+- View source code for personal learning
+- Run the software for personal, non-commercial use with YOUR OWN API keys
+- Modify for personal use only
+
+RESTRICTIONS:
+- NO commercial use
+- NO redistribution
+- NO public deployment
+- NO sharing of API keys or credentials
+- NO use that could incur costs to the copyright holder
+
+COST WARNING:
+This software uses PAID third-party services including but not limited to:
+- OpenAI API (approximately $0.03 per 1,000 tokens)
+- Anthropic API (approximately $0.025 per 1,000 tokens)
+- Google Cloud Services (varies by usage)
+- Twilio SMS (approximately $0.0075 per message)
+- Firebase (scaling costs based on usage)
+
+TYPICAL COSTS MAY RANGE FROM $50-500+ PER MONTH
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND. IN NO EVENT 
+SHALL THE COPYRIGHT HOLDER BE LIABLE FOR ANY COSTS, DAMAGES, OR CHARGES 
+INCURRED THROUGH USE OF THIS SOFTWARE.
+
+By using this software, you acknowledge that you understand the potential 
+costs and accept full financial responsibility for any charges incurred.

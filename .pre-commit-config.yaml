@@ -1,0 +1,86 @@
+repos:
+  # Python hooks
+  - repo: https://github.com/psf/black
+    rev: 23.12.1
+    hooks:
+      - id: black
+        language_version: python3.11
+        files: ^echo-backend/
+        
+  - repo: https://github.com/pycqa/flake8
+    rev: 7.0.0
+    hooks:
+      - id: flake8
+        files: ^echo-backend/
+        args: ['--max-line-length=88', '--extend-ignore=E203']
+        
+  - repo: https://github.com/pycqa/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        files: ^echo-backend/
+        args: ['--profile', 'black']
+        
+  # JavaScript/Vue hooks
+  - repo: https://github.com/pre-commit/mirrors-eslint
+    rev: v8.56.0
+    hooks:
+      - id: eslint
+        files: \.(js|vue)$
+        types: [file]
+        args: ['--fix']
+        additional_dependencies:
+          - eslint@8.56.0
+          - eslint-plugin-vue@9.19.2
+          - '@vue/eslint-config-prettier@8.0.0'
+          
+  # General hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+        args: ['--maxkb=1000']
+      - id: check-json
+      - id: check-merge-conflict
+      - id: check-toml
+      - id: debug-statements
+        files: ^echo-backend/
+        
+  # Security checks
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.4.0
+    hooks:
+      - id: detect-secrets
+        args: ['--baseline', '.secrets.baseline']
+        
+  # Python type checking
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.8.0
+    hooks:
+      - id: mypy
+        files: ^echo-backend/
+        additional_dependencies:
+          - types-requests
+          - types-python-dateutil
+          
+  # Test runner
+  - repo: local
+    hooks:
+      - id: pytest-check
+        name: pytest-check
+        entry: bash -c 'cd echo-backend && pytest tests/test_agents/test_base_agent.py::TestBaseAgent::test_initialization_defaults -v'
+        language: system
+        pass_filenames: false
+        always_run: true
+        files: ^echo-backend/.*\.py$
+        
+      - id: vitest-check
+        name: vitest-check
+        entry: bash -c 'cd echo-frontend && npm test -- --run --reporter=verbose src/components/__tests__/StatCard.test.js'
+        language: system
+        pass_filenames: false
+        always_run: true
+        files: ^echo-frontend/src/.*\.(js|vue)$
