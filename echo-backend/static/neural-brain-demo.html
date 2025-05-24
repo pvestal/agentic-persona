@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ECHO Neural Brain Visualization</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #000;
+            color: #fff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            overflow: hidden;
+        }
+
+        #canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .controls {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid rgba(74, 144, 226, 0.5);
+            backdrop-filter: blur(10px);
+            max-width: 300px;
+        }
+
+        .brain-section {
+            margin: 10px 0;
+            padding: 10px;
+            background: rgba(74, 144, 226, 0.1);
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .brain-section:hover {
+            background: rgba(74, 144, 226, 0.3);
+        }
+
+        .brain-section.active {
+            background: rgba(74, 144, 226, 0.5);
+            box-shadow: 0 0 20px rgba(74, 144, 226, 0.8);
+        }
+
+        .activity-level {
+            display: inline-block;
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+
+        .activity-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #4A90E2, #50C878);
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        h1 {
+            text-align: center;
+            color: #4A90E2;
+            margin: 20px 0;
+            text-shadow: 0 0 20px rgba(74, 144, 226, 0.5);
+        }
+
+        .stats {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    
+    <div class="controls">
+        <h2>Brain Regions</h2>
+        
+        <div class="brain-section" data-region="frontal" onclick="activateRegion('frontal')">
+            <strong>Frontal Cortex</strong><br>
+            <small>Decision Making & Planning</small>
+            <div class="activity-level">
+                <div class="activity-bar" id="frontal-activity"></div>
+            </div>
+        </div>
+        
+        <div class="brain-section" data-region="temporal" onclick="activateRegion('temporal')">
+            <strong>Temporal Lobe</strong><br>
+            <small>Language Processing</small>
+            <div class="activity-level">
+                <div class="activity-bar" id="temporal-activity"></div>
+            </div>
+        </div>
+        
+        <div class="brain-section" data-region="parietal" onclick="activateRegion('parietal')">
+            <strong>Parietal Lobe</strong><br>
+            <small>Sensory Integration</small>
+            <div class="activity-level">
+                <div class="activity-bar" id="parietal-activity"></div>
+            </div>
+        </div>
+        
+        <div class="brain-section" data-region="occipital" onclick="activateRegion('occipital')">
+            <strong>Occipital Lobe</strong><br>
+            <small>Visual Processing</small>
+            <div class="activity-level">
+                <div class="activity-bar" id="occipital-activity"></div>
+            </div>
+        </div>
+        
+        <div class="brain-section" data-region="hippocampus" onclick="activateRegion('hippocampus')">
+            <strong>Hippocampus</strong><br>
+            <small>Memory Formation</small>
+            <div class="activity-level">
+                <div class="activity-bar" id="hippocampus-activity"></div>
+            </div>
+        </div>
+        
+        <div class="brain-section" data-region="amygdala" onclick="activateRegion('amygdala')">
+            <strong>Amygdala</strong><br>
+            <small>Emotion Processing</small>
+            <div class="activity-level">
+                <div class="activity-bar" id="amygdala-activity"></div>
+            </div>
+        </div>
+        
+        <div class="brain-section" data-region="cerebellum" onclick="activateRegion('cerebellum')">
+            <strong>Cerebellum</strong><br>
+            <small>Motor Coordination</small>
+            <div class="activity-level">
+                <div class="activity-bar" id="cerebellum-activity"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="stats">
+        <div>Neurons: <span id="neuron-count">0</span></div>
+        <div>Synapses: <span id="synapse-count">0</span></div>
+        <div>Activity: <span id="activity-percent">0</span>%</div>
+        <div>FPS: <span id="fps">0</span></div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Set canvas size
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // Neural network structure
+        class Neuron {
+            constructor(x, y, region) {
+                this.x = x;
+                this.y = y;
+                this.region = region;
+                this.charge = 0;
+                this.connections = [];
+                this.radius = 2 + Math.random() * 2;
+                this.baseColor = this.getRegionColor();
+                this.pulsePhase = Math.random() * Math.PI * 2;
+            }
+            
+            getRegionColor() {
+                const colors = {
+                    frontal: { r: 74, g: 144, b: 226 },      // Blue
+                    temporal: { r: 226, g: 74, b: 144 },     // Pink
+                    parietal: { r: 144, g: 226, b: 74 },     // Green
+                    occipital: { r: 226, g: 144, b: 74 },    // Orange
+                    hippocampus: { r: 155, g: 89, b: 182 },  // Purple
+                    amygdala: { r: 231, g: 76, b: 60 },      // Red
+                    cerebellum: { r: 52, g: 152, b: 219 }    // Light Blue
+                };
+                return colors[this.region] || { r: 255, g: 255, b: 255 };
+            }
+            
+            update(deltaTime) {
+                // Natural charge decay
+                this.charge *= 0.98;
+                
+                // Pulsing effect
+                this.pulsePhase += deltaTime * 0.002;
+                
+                // Random spontaneous firing
+                if (Math.random() < 0.0001 && this.charge < 0.5) {
+                    this.fire();
+                }
+            }
+            
+            fire() {
+                this.charge = 1;
+                // Propagate to connected neurons
+                this.connections.forEach(conn => {
+                    if (conn.target.charge < 0.3) {
+                        setTimeout(() => {
+                            conn.target.charge = Math.min(1, conn.target.charge + 0.7);
+                            if (conn.target.charge > 0.8) {
+                                conn.target.fire();
+                            }
+                        }, conn.delay);
+                    }
+                });
+            }
+            
+            draw() {
+                // Neuron body
+                const intensity = this.charge;
+                const pulse = Math.sin(this.pulsePhase) * 0.2 + 0.8;
+                
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius * (1 + intensity * 0.5), 0, Math.PI * 2);
+                
+                const color = this.baseColor;
+                ctx.fillStyle = `rgba(${color.r}, ${color.g}, ${color.b}, ${0.6 + intensity * 0.4})`;
+                ctx.fill();
+                
+                // Glow effect
+                if (intensity > 0.1) {
+                    ctx.shadowBlur = 20 * intensity;
+                    ctx.shadowColor = `rgba(${color.r}, ${color.g}, ${color.b}, ${intensity})`;
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                }
+            }
+        }
+        
+        class Synapse {
+            constructor(source, target) {
+                this.source = source;
+                this.target = target;
+                this.strength = 0.3 + Math.random() * 0.7;
+                this.delay = 50 + Math.random() * 100; // milliseconds
+            }
+            
+            draw() {
+                const activity = (this.source.charge + this.target.charge) / 2;
+                if (activity > 0.1) {
+                    ctx.beginPath();
+                    ctx.moveTo(this.source.x, this.source.y);
+                    
+                    // Create curved path
+                    const midX = (this.source.x + this.target.x) / 2;
+                    const midY = (this.source.y + this.target.y) / 2;
+                    const curve = 20;
+                    
+                    ctx.quadraticCurveTo(
+                        midX + curve * (Math.random() - 0.5),
+                        midY + curve * (Math.random() - 0.5),
+                        this.target.x,
+                        this.target.y
+                    );
+                    
+                    const color = this.source.baseColor;
+                    ctx.strokeStyle = `rgba(${color.r}, ${color.g}, ${color.b}, ${activity * 0.5})`;
+                    ctx.lineWidth = this.strength * activity * 2;
+                    ctx.stroke();
+                }
+            }
+        }
+        
+        // Brain regions layout
+        const brainRegions = {
+            frontal: { x: 0.5, y: 0.3, radius: 0.15 },
+            temporal: { x: 0.3, y: 0.5, radius: 0.12 },
+            parietal: { x: 0.5, y: 0.5, radius: 0.12 },
+            occipital: { x: 0.5, y: 0.7, radius: 0.1 },
+            hippocampus: { x: 0.4, y: 0.6, radius: 0.08 },
+            amygdala: { x: 0.6, y: 0.6, radius: 0.08 },
+            cerebellum: { x: 0.7, y: 0.5, radius: 0.12 }
+        };
+        
+        // Create neurons
+        const neurons = [];
+        const regionActivity = {};
+        
+        Object.entries(brainRegions).forEach(([region, config]) => {
+            const neuronCount = Math.floor(100 + Math.random() * 50);
+            regionActivity[region] = 0;
+            
+            for (let i = 0; i < neuronCount; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const distance = Math.random() * config.radius * canvas.width;
+                
+                const x = config.x * canvas.width + Math.cos(angle) * distance;
+                const y = config.y * canvas.height + Math.sin(angle) * distance;
+                
+                neurons.push(new Neuron(x, y, region));
+            }
+        });
+        
+        // Create synapses
+        const synapses = [];
+        neurons.forEach((neuron, i) => {
+            // Connect to nearby neurons
+            const connectionCount = 3 + Math.floor(Math.random() * 5);
+            const nearbyNeurons = neurons
+                .filter(n => n !== neuron)
+                .sort((a, b) => {
+                    const distA = Math.hypot(a.x - neuron.x, a.y - neuron.y);
+                    const distB = Math.hypot(b.x - neuron.x, b.y - neuron.y);
+                    return distA - distB;
+                });
+            
+            for (let j = 0; j < connectionCount && j < nearbyNeurons.length; j++) {
+                const target = nearbyNeurons[j];
+                const synapse = new Synapse(neuron, target);
+                synapses.push(synapse);
+                neuron.connections.push({ target, delay: synapse.delay });
+            }
+        });
+        
+        // Animation variables
+        let lastTime = 0;
+        let frameCount = 0;
+        let fps = 0;
+        let lastFpsUpdate = 0;
+        
+        // Activate brain region
+        function activateRegion(region) {
+            const regionNeurons = neurons.filter(n => n.region === region);
+            regionNeurons.forEach(neuron => {
+                if (Math.random() < 0.3) {
+                    neuron.fire();
+                }
+            });
+            
+            // Update UI
+            document.querySelectorAll('.brain-section').forEach(section => {
+                section.classList.toggle('active', section.dataset.region === region);
+            });
+        }
+        
+        // Animation loop
+        function animate(currentTime) {
+            const deltaTime = currentTime - lastTime;
+            lastTime = currentTime;
+            
+            // Update FPS
+            frameCount++;
+            if (currentTime - lastFpsUpdate > 1000) {
+                fps = frameCount;
+                frameCount = 0;
+                lastFpsUpdate = currentTime;
+                document.getElementById('fps').textContent = fps;
+            }
+            
+            // Clear canvas
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Update and draw synapses
+            synapses.forEach(synapse => synapse.draw());
+            
+            // Update and draw neurons
+            Object.keys(regionActivity).forEach(region => {
+                regionActivity[region] = 0;
+            });
+            
+            neurons.forEach(neuron => {
+                neuron.update(deltaTime);
+                neuron.draw();
+                regionActivity[neuron.region] += neuron.charge;
+            });
+            
+            // Update activity displays
+            let totalActivity = 0;
+            Object.entries(regionActivity).forEach(([region, activity]) => {
+                const normalized = Math.min(100, (activity / 50) * 100);
+                document.getElementById(`${region}-activity`).style.width = `${normalized}%`;
+                totalActivity += activity;
+            });
+            
+            // Update stats
+            document.getElementById('neuron-count').textContent = neurons.length;
+            document.getElementById('synapse-count').textContent = synapses.length;
+            document.getElementById('activity-percent').textContent = Math.floor(totalActivity / neurons.length * 100);
+            
+            requestAnimationFrame(animate);
+        }
+        
+        // Start animation
+        requestAnimationFrame(animate);
+        
+        // Simulate background brain activity
+        setInterval(() => {
+            // Random region activation
+            const regions = Object.keys(brainRegions);
+            const randomRegion = regions[Math.floor(Math.random() * regions.length)];
+            
+            // Light activation
+            const regionNeurons = neurons.filter(n => n.region === randomRegion);
+            const count = Math.floor(Math.random() * 5);
+            for (let i = 0; i < count; i++) {
+                const neuron = regionNeurons[Math.floor(Math.random() * regionNeurons.length)];
+                if (neuron) neuron.fire();
+            }
+        }, 1000);
+        
+        // Connect to WebSocket for real brain activity
+        function connectWebSocket() {
+            const ws = new WebSocket('ws://localhost:8000/ws');
+            
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                
+                // Map different activities to brain regions
+                if (data.type === 'message_processed') {
+                    activateRegion('temporal'); // Language processing
+                    setTimeout(() => activateRegion('frontal'), 500); // Decision making
+                } else if (data.type === 'learning_update') {
+                    activateRegion('hippocampus'); // Memory formation
+                } else if (data.type === 'emotion_detected') {
+                    activateRegion('amygdala'); // Emotion processing
+                }
+            };
+        }
+        
+        // Try to connect to WebSocket
+        try {
+            connectWebSocket();
+        } catch (e) {
+            console.log('WebSocket connection failed, running in demo mode');
+        }
+    </script>
+</body>
+</html>

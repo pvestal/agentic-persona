@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Head Demo</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #0a0a0a;
+      color: #fff;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+    
+    .container {
+      max-width: 1200px;
+      width: 100%;
+      padding: 2rem;
+    }
+    
+    h1 {
+      text-align: center;
+      color: #00ff88;
+      margin-bottom: 2rem;
+    }
+    
+    .demo-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+      margin-bottom: 3rem;
+    }
+    
+    .demo-section {
+      background: #1a1a1a;
+      border-radius: 1rem;
+      padding: 1.5rem;
+      border: 1px solid #333;
+    }
+    
+    .demo-section h2 {
+      color: #00ff88;
+      margin-bottom: 1rem;
+      font-size: 1.2rem;
+    }
+    
+    #ai-head-container {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 2rem;
+    }
+    
+    .controls {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    
+    button {
+      padding: 0.75rem 1.5rem;
+      background: #00ff88;
+      color: #000;
+      border: none;
+      border-radius: 0.5rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    button:hover {
+      background: #00cc66;
+      transform: translateY(-2px);
+    }
+    
+    button:active {
+      transform: translateY(0);
+    }
+    
+    input[type="text"] {
+      padding: 0.75rem;
+      background: #0a0a0a;
+      border: 1px solid #333;
+      color: #fff;
+      border-radius: 0.5rem;
+      width: 100%;
+    }
+    
+    select {
+      padding: 0.75rem;
+      background: #0a0a0a;
+      border: 1px solid #333;
+      color: #fff;
+      border-radius: 0.5rem;
+      width: 100%;
+    }
+    
+    .slider-control {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    
+    input[type="range"] {
+      flex: 1;
+    }
+    
+    .status {
+      text-align: center;
+      margin-top: 1rem;
+      color: #888;
+    }
+    
+    .code-example {
+      background: #0a0a0a;
+      border: 1px solid #333;
+      border-radius: 0.5rem;
+      padding: 1rem;
+      margin-top: 2rem;
+      overflow-x: auto;
+    }
+    
+    pre {
+      margin: 0;
+      color: #00ff88;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🤖 AI Head Demo</h1>
+    
+    <div id="ai-head-container"></div>
+    
+    <div class="demo-grid">
+      <div class="demo-section">
+        <h2>Speech Controls</h2>
+        <div class="controls">
+          <input type="text" id="speech-input" placeholder="Enter text to speak..." value="Hello! I am your AI assistant. How can I help you today?">
+          <button onclick="speak()">Speak</button>
+          <button onclick="stopSpeaking()">Stop Speaking</button>
+          <div class="slider-control">
+            <label>Speed:</label>
+            <input type="range" id="speech-rate" min="0.5" max="2" step="0.1" value="1">
+            <span id="rate-value">1.0</span>
+          </div>
+          <div class="slider-control">
+            <label>Pitch:</label>
+            <input type="range" id="speech-pitch" min="0.5" max="2" step="0.1" value="1">
+            <span id="pitch-value">1.0</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="demo-section">
+        <h2>Expressions</h2>
+        <div class="controls">
+          <button onclick="setExpression('happy')">😊 Happy</button>
+          <button onclick="setExpression('sad')">😢 Sad</button>
+          <button onclick="setExpression('surprised')">😮 Surprised</button>
+          <button onclick="setExpression('thinking')">🤔 Thinking</button>
+          <button onclick="setExpression('angry')">😠 Angry</button>
+          <button onclick="setExpression('neutral')">😐 Neutral</button>
+        </div>
+      </div>
+      
+      <div class="demo-section">
+        <h2>Themes</h2>
+        <div class="controls">
+          <select id="theme-select" onchange="changeTheme()">
+            <option value="cyberpunk">Cyberpunk</option>
+            <option value="matrix">Matrix</option>
+            <option value="hologram">Hologram</option>
+            <option value="retro">Retro</option>
+            <option value="minimal">Minimal</option>
+          </select>
+          <button onclick="randomTheme()">Random Theme</button>
+        </div>
+      </div>
+      
+      <div class="demo-section">
+        <h2>Animations</h2>
+        <div class="controls">
+          <button onclick="playNod()">Nod</button>
+          <button onclick="playShake()">Shake Head</button>
+          <button onclick="playBlink()">Blink</button>
+          <button onclick="playThink()">Think</button>
+        </div>
+      </div>
+      
+      <div class="demo-section">
+        <h2>Voice Recognition</h2>
+        <div class="controls">
+          <button id="listen-btn" onclick="toggleListening()">Start Listening</button>
+          <div id="transcript" style="margin-top: 1rem; padding: 0.5rem; background: #0a0a0a; border-radius: 0.5rem; min-height: 50px;"></div>
+        </div>
+      </div>
+      
+      <div class="demo-section">
+        <h2>Interactive Features</h2>
+        <div class="controls">
+          <label>
+            <input type="checkbox" id="follow-mouse" onchange="toggleFollowMouse()">
+            Follow Mouse
+          </label>
+          <label>
+            <input type="checkbox" id="idle-animations" checked onchange="toggleIdleAnimations()">
+            Idle Animations
+          </label>
+          <label>
+            <input type="checkbox" id="audio-viz" checked onchange="toggleAudioViz()">
+            Audio Visualization
+          </label>
+        </div>
+      </div>
+    </div>
+    
+    <div class="status" id="status">Ready</div>
+    
+    <div class="code-example">
+      <h3>Quick Start Code:</h3>
+      <pre>
+import AIHead from '@agentic-persona/ai-head'
+
+const head = new AIHead({
+  container: '#ai-head-container',
+  theme: 'cyberpunk',
+  enableVoice: true,
+  enableListening: true
+})
+
+head.speak("Hello, I'm your AI assistant!")
+head.setExpression('happy')
+      </pre>
+    </div>
+  </div>
+  
+  <script type="module">
+    import AIHead from '../src/AIHead.js'
+    
+    // Initialize AI Head
+    window.aiHead = new AIHead({
+      container: '#ai-head-container',
+      width: 400,
+      height: 400,
+      theme: 'cyberpunk',
+      enableVoice: true,
+      enableListening: true,
+      idleAnimation: true
+    })
+    
+    // Event listeners
+    aiHead.on('speaking', () => updateStatus('Speaking...'))
+    aiHead.on('speechEnd', () => updateStatus('Ready'))
+    aiHead.on('listening', () => updateStatus('Listening...'))
+    aiHead.on('transcript', (data) => {
+      document.getElementById('transcript').textContent = data.transcript
+      if (data.isFinal) {
+        updateStatus('Transcript received')
+      }
+    })
+    
+    // Global functions for demo buttons
+    window.speak = () => {
+      const text = document.getElementById('speech-input').value
+      const rate = parseFloat(document.getElementById('speech-rate').value)
+      const pitch = parseFloat(document.getElementById('speech-pitch').value)
+      aiHead.speak(text, { rate, pitch })
+    }
+    
+    window.stopSpeaking = () => {
+      aiHead.stopSpeaking()
+      updateStatus('Speech stopped')
+    }
+    
+    window.setExpression = (expression) => {
+      aiHead.setExpression(expression)
+      updateStatus(`Expression: ${expression}`)
+    }
+    
+    window.changeTheme = () => {
+      const theme = document.getElementById('theme-select').value
+      aiHead.setTheme(theme)
+      updateStatus(`Theme: ${theme}`)
+    }
+    
+    window.randomTheme = () => {
+      const themes = ['cyberpunk', 'matrix', 'hologram', 'retro', 'minimal']
+      const randomTheme = themes[Math.floor(Math.random() * themes.length)]
+      document.getElementById('theme-select').value = randomTheme
+      aiHead.setTheme(randomTheme)
+      updateStatus(`Random theme: ${randomTheme}`)
+    }
+    
+    window.playNod = () => {
+      aiHead.animate([
+        { rotation: { x: 0 }, duration: 200 },
+        { rotation: { x: 0.2 }, duration: 200 },
+        { rotation: { x: -0.2 }, duration: 200 },
+        { rotation: { x: 0 }, duration: 200 }
+      ])
+    }
+    
+    window.playShake = () => {
+      aiHead.animate([
+        { rotation: { z: 0 }, duration: 100 },
+        { rotation: { z: -0.1 }, duration: 100 },
+        { rotation: { z: 0.1 }, duration: 100 },
+        { rotation: { z: -0.1 }, duration: 100 },
+        { rotation: { z: 0 }, duration: 100 }
+      ])
+    }
+    
+    window.playBlink = () => {
+      aiHead.state.eyeBlink = 1
+    }
+    
+    window.playThink = () => {
+      aiHead.setExpression('thinking')
+      aiHead.animate([
+        { rotation: { x: 0.1, y: 0.1 }, duration: 1000 },
+        { rotation: { x: 0.1, y: -0.1 }, duration: 1000 },
+        { rotation: { x: 0, y: 0 }, duration: 500 }
+      ])
+    }
+    
+    window.toggleListening = () => {
+      const btn = document.getElementById('listen-btn')
+      if (aiHead.state.isListening) {
+        aiHead.stopListening()
+        btn.textContent = 'Start Listening'
+      } else {
+        aiHead.startListening({
+          continuous: true,
+          onResult: (transcript, isFinal) => {
+            if (isFinal) {
+              aiHead.speak(`I heard you say: ${transcript}`)
+            }
+          }
+        })
+        btn.textContent = 'Stop Listening'
+      }
+    }
+    
+    window.toggleFollowMouse = () => {
+      aiHead.config.followMouse = document.getElementById('follow-mouse').checked
+    }
+    
+    window.toggleIdleAnimations = () => {
+      aiHead.config.idleAnimation = document.getElementById('idle-animations').checked
+    }
+    
+    window.toggleAudioViz = () => {
+      aiHead.config.visualizeAudio = document.getElementById('audio-viz').checked
+    }
+    
+    // Update sliders
+    document.getElementById('speech-rate').addEventListener('input', (e) => {
+      document.getElementById('rate-value').textContent = e.target.value
+    })
+    
+    document.getElementById('speech-pitch').addEventListener('input', (e) => {
+      document.getElementById('pitch-value').textContent = e.target.value
+    })
+    
+    function updateStatus(text) {
+      document.getElementById('status').textContent = text
+    }
+    
+    // Initial greeting
+    setTimeout(() => {
+      aiHead.speak("Hello! I'm your AI assistant. Try out the controls to see what I can do!")
+      aiHead.setExpression('happy')
+    }, 1000)
+  </script>
+</body>
+</html>

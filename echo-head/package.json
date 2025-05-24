@@ -1,0 +1,55 @@
+{
+  "name": "@agentic-persona/ai-head",
+  "version": "1.0.0",
+  "description": "Open source animated AI avatar with voice synthesis and facial expressions",
+  "main": "dist/ai-head.js",
+  "module": "src/AIHead.js",
+  "type": "module",
+  "scripts": {
+    "build": "rollup -c",
+    "dev": "rollup -c -w",
+    "test": "jest",
+    "lint": "eslint src",
+    "prepublishOnly": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/agentic-persona/ai-head.git"
+  },
+  "keywords": [
+    "ai",
+    "avatar",
+    "animation",
+    "voice",
+    "speech",
+    "synthesis",
+    "recognition",
+    "canvas",
+    "webgl",
+    "assistant"
+  ],
+  "author": "Agentic Persona Team",
+  "license": "MIT",
+  "devDependencies": {
+    "@rollup/plugin-node-resolve": "^15.0.0",
+    "@rollup/plugin-terser": "^0.4.0",
+    "eslint": "^8.0.0",
+    "jest": "^29.0.0",
+    "rollup": "^3.0.0"
+  },
+  "files": [
+    "dist",
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
+  "jsdelivr": "dist/ai-head.min.js",
+  "unpkg": "dist/ai-head.min.js",
+  "exports": {
+    ".": {
+      "import": "./src/AIHead.js",
+      "require": "./dist/ai-head.cjs.js",
+      "browser": "./dist/ai-head.min.js"
+    }
+  }
+}

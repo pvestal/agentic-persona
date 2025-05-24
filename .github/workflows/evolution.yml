@@ -1,0 +1,59 @@
+name: Continuous Evolution
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Run evolution analysis daily
+    - cron: '0 0 * * *'
+
+jobs:
+  analyze-and-evolve:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+    
+    - name: Install dependencies
+      run: |
+        cd persona-backend
+        pip install -r requirements.txt
+    
+    - name: Run Evolution Analysis
+      env:
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      run: |
+        cd persona-backend
+        python -m agents.evolution_engine analyze
+    
+    - name: Generate Evolution Report
+      run: |
+        cd persona-backend
+        python -m agents.evolution_engine report > ../evolution/latest_report.json
+    
+    - name: Update Documentation
+      run: |
+        cd persona-backend
+        python -m agents.documentation_updater
+    
+    - name: Commit Evolution Changes
+      run: |
+        git config --local user.email "ai-evolution@agentic-persona.dev"
+        git config --local user.name "AI Evolution Bot"
+        git add -A
+        git diff --cached --quiet || git commit -m "🤖 Automatic evolution cycle $(date +%Y-%m-%d)"
+    
+    - name: Push changes
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        branch: ${{ github.ref }}

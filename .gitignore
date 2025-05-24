@@ -1,0 +1,81 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
+*.egg-info/
+dist/
+build/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+*.log
+logs/
+server.log
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Testing
+.coverage
+htmlcov/
+.pytest_cache/
+.tox/
+
+# Private/Sensitive Agents
+echo-backend/agents/crypto_trader.py
+echo-backend/agents/financial_planner.py
+echo-backend/agents/wealth_builder.py
+# Keep the example versions public
+
+# Private configurations
+private_config/
+secrets/
+
+# User data
+user_data/
+evolution/shutdown_stats.json
+
+# Audio files (can be large)
+static/audio/*.mp3
+static/audio/*.wav
+
+# Temporary files
+*.tmp
+.cache/
+
+# Firebase (if using real credentials)
+firebase-credentials.json
+.firebaserc
+
+# Production builds
+dist/
+build/

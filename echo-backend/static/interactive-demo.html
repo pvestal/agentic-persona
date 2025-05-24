@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ECHO - Interactive LLM Demo</title>
+    <style>
+        body {
+            font-family: -apple-system, system-ui, sans-serif;
+            background: #1a1a2e;
+            color: #fff;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #4fc3f7;
+            margin-bottom: 40px;
+        }
+        
+        .demo-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .card {
+            background: #0f3460;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        
+        .card h2 {
+            color: #4fc3f7;
+            margin-top: 0;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #94a3b8;
+        }
+        
+        input, textarea, select {
+            width: 100%;
+            padding: 10px;
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            color: #fff;
+            font-size: 14px;
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        button {
+            background: #4fc3f7;
+            color: #000;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        button:hover {
+            background: #29b6f6;
+            transform: translateY(-1px);
+        }
+        
+        button:disabled {
+            background: #475569;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .response-box {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            padding: 15px;
+            margin-top: 20px;
+            min-height: 100px;
+        }
+        
+        .response-box h3 {
+            margin-top: 0;
+            color: #4fc3f7;
+        }
+        
+        .loading {
+            text-align: center;
+            color: #94a3b8;
+        }
+        
+        .error {
+            color: #ef4444;
+            margin-top: 10px;
+        }
+        
+        .success {
+            color: #10b981;
+            margin-top: 10px;
+        }
+        
+        .conversation {
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 10px;
+            background: #1e293b;
+            border-radius: 6px;
+            margin-top: 20px;
+        }
+        
+        .message {
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 6px;
+        }
+        
+        .message.user {
+            background: #334155;
+            margin-left: 20%;
+        }
+        
+        .message.assistant {
+            background: #0f3460;
+            margin-right: 20%;
+        }
+        
+        .message-header {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-bottom: 5px;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .stat {
+            background: #1e293b;
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4fc3f7;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #94a3b8;
+        }
+        
+        .feedback-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .feedback-buttons button {
+            flex: 1;
+            padding: 8px 16px;
+            font-size: 14px;
+        }
+        
+        .btn-approve {
+            background: #10b981;
+        }
+        
+        .btn-approve:hover {
+            background: #059669;
+        }
+        
+        .btn-reject {
+            background: #ef4444;
+        }
+        
+        .btn-reject:hover {
+            background: #dc2626;
+        }
+        
+        .btn-edit {
+            background: #f59e0b;
+        }
+        
+        .btn-edit:hover {
+            background: #d97706;
+        }
+        
+        .edit-area {
+            margin-top: 10px;
+            display: none;
+        }
+        
+        .learning-insights {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+        
+        .insight-item {
+            padding: 5px 0;
+            border-bottom: 1px solid #334155;
+        }
+        
+        .insight-item:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 ECHO - Interactive LLM Demo</h1>
+        
+        <div class="demo-grid">
+            <!-- Message Processing -->
+            <div class="card">
+                <h2>📧 Message Processing</h2>
+                <form id="messageForm">
+                    <div class="form-group">
+                        <label>Platform</label>
+                        <select id="platform">
+                            <option value="email">Email</option>
+                            <option value="sms">SMS</option>
+                            <option value="slack">Slack</option>
+                            <option value="discord">Discord</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Sender</label>
+                        <input type="text" id="sender" placeholder="john@example.com" value="colleague@example.com">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Message</label>
+                        <textarea id="messageContent" placeholder="Type your message here...">Can we schedule a meeting next week to discuss the Q4 project timeline?</textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Urgency (0-1)</label>
+                        <input type="number" id="urgency" min="0" max="1" step="0.1" value="0.5">
+                    </div>
+                    
+                    <button type="submit">Process Message</button>
+                </form>
+                
+                <div id="messageResponse" class="response-box" style="display: none;">
+                    <h3>Response</h3>
+                    <div id="messageResult"></div>
+                </div>
+            </div>
+            
+            <!-- LLM Testing -->
+            <div class="card">
+                <h2>🧠 Direct LLM Testing</h2>
+                <form id="llmForm">
+                    <div class="form-group">
+                        <label>Message</label>
+                        <textarea id="llmMessage" placeholder="Test message for LLM...">I need help preparing for tomorrow's presentation. Can you review my slides?</textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Response Style</label>
+                        <select id="responseStyle">
+                            <option value="professional">Professional</option>
+                            <option value="casual">Casual</option>
+                            <option value="technical">Technical</option>
+                            <option value="friendly">Friendly</option>
+                        </select>
+                    </div>
+                    
+                    <button type="submit">Generate Response</button>
+                </form>
+                
+                <div id="llmResponse" class="response-box" style="display: none;">
+                    <h3>LLM Analysis</h3>
+                    <div id="llmResult"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Conversation Simulator -->
+        <div class="card">
+            <h2>💬 Conversation Simulator</h2>
+            <div class="form-group">
+                <label>Quick Message</label>
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="quickMessage" placeholder="Type a message..." 
+                           onkeypress="if(event.key==='Enter') sendQuickMessage()">
+                    <button onclick="sendQuickMessage()">Send</button>
+                </div>
+            </div>
+            
+            <div id="conversation" class="conversation"></div>
+            
+            <div class="stats">
+                <div class="stat">
+                    <div class="stat-value" id="messageCount">0</div>
+                    <div class="stat-label">Messages</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="avgResponseTime">0ms</div>
+                    <div class="stat-label">Avg Response</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="llmStatus">🔴</div>
+                    <div class="stat-label">LLM Status</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="autonomyLevel">Suggest</div>
+                    <div class="stat-label">Autonomy</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Learning System -->
+        <div class="card">
+            <h2>🧠 Learning & Feedback System</h2>
+            
+            <div id="lastResponse" style="display: none;">
+                <h3>Last Generated Response</h3>
+                <div id="responseText" class="response-box">
+                    <p id="responseContent"></p>
+                    
+                    <div class="feedback-buttons">
+                        <button class="btn-approve" onclick="submitFeedback('approved')">✅ Approve</button>
+                        <button class="btn-edit" onclick="showEditArea()">✏️ Edit</button>
+                        <button class="btn-reject" onclick="submitFeedback('rejected')">❌ Reject</button>
+                    </div>
+                    
+                    <div id="editArea" class="edit-area">
+                        <textarea id="editedResponse" placeholder="Edit the response..." style="width: 100%; min-height: 100px;"></textarea>
+                        <button onclick="submitEditedResponse()">Submit Edit</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="learning-insights">
+                <h3>Learning Insights</h3>
+                <div id="insights">
+                    <div class="insight-item">No insights yet. Start interacting to see learning patterns!</div>
+                </div>
+            </div>
+            
+            <div style="margin-top: 20px;">
+                <button onclick="fetchLearningTrends()">📊 View Learning Trends</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000/api';
+        let messageCount = 0;
+        let totalResponseTime = 0;
+        
+        // Check LLM status on load
+        async function checkLLMStatus() {
+            try {
+                const response = await fetch(`${API_BASE}/messages/test-llm`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        content: "test",
+                        platform: "test",
+                        sender: "test"
+                    })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    document.getElementById('llmStatus').textContent = data.llm_available ? '🟢' : '🔴';
+                }
+            } catch (error) {
+                document.getElementById('llmStatus').textContent = '🔴';
+            }
+        }
+        
+        // Message processing form
+        document.getElementById('messageForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const button = e.target.querySelector('button');
+            button.disabled = true;
+            button.textContent = 'Processing...';
+            
+            const responseDiv = document.getElementById('messageResponse');
+            const resultDiv = document.getElementById('messageResult');
+            
+            try {
+                const response = await fetch(`${API_BASE}/messages/process`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        content: document.getElementById('messageContent').value,
+                        platform: document.getElementById('platform').value,
+                        sender: document.getElementById('sender').value,
+                        urgency: parseFloat(document.getElementById('urgency').value)
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <p><strong>Action:</strong> ${data.action_taken}</p>
+                        <p><strong>Confidence:</strong> ${(data.confidence * 100).toFixed(1)}%</p>
+                        <p><strong>Suggested Response:</strong></p>
+                        <div style="background: #1a1a2e; padding: 10px; border-radius: 6px; margin-top: 10px;">
+                            ${data.suggested_response || 'No response generated'}
+                        </div>
+                    `;
+                    responseDiv.style.display = 'block';
+                } else {
+                    throw new Error(data.detail || 'Failed to process message');
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+                responseDiv.style.display = 'block';
+            } finally {
+                button.disabled = false;
+                button.textContent = 'Process Message';
+            }
+        });
+        
+        // LLM testing form
+        document.getElementById('llmForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const button = e.target.querySelector('button');
+            button.disabled = true;
+            button.textContent = 'Generating...';
+            
+            const responseDiv = document.getElementById('llmResponse');
+            const resultDiv = document.getElementById('llmResult');
+            
+            const startTime = Date.now();
+            
+            try {
+                const response = await fetch(`${API_BASE}/messages/test-llm`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        content: document.getElementById('llmMessage').value,
+                        platform: 'test',
+                        sender: 'user@example.com',
+                        recipient: 'me'
+                    })
+                });
+                
+                const data = await response.json();
+                const responseTime = Date.now() - startTime;
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <p><strong>Response Time:</strong> ${responseTime}ms</p>
+                        <p><strong>Analysis:</strong></p>
+                        <pre style="background: #1a1a2e; padding: 10px; border-radius: 6px; overflow-x: auto;">
+${JSON.stringify(data.analysis, null, 2)}</pre>
+                        <p><strong>Generated Response:</strong></p>
+                        <div style="background: #1a1a2e; padding: 10px; border-radius: 6px; margin-top: 10px;">
+                            ${data.enhanced_response || data.basic_response || 'No response generated'}
+                        </div>
+                    `;
+                    responseDiv.style.display = 'block';
+                } else {
+                    throw new Error(data.detail || 'Failed to generate response');
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+                responseDiv.style.display = 'block';
+            } finally {
+                button.disabled = false;
+                button.textContent = 'Generate Response';
+            }
+        });
+        
+        // Quick message sender
+        async function sendQuickMessage() {
+            const input = document.getElementById('quickMessage');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            // Add user message to conversation
+            addToConversation('user', message);
+            input.value = '';
+            
+            const startTime = Date.now();
+            
+            try {
+                const response = await fetch(`${API_BASE}/messages/test-llm`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        content: message,
+                        platform: 'chat',
+                        sender: 'user@example.com'
+                    })
+                });
+                
+                const data = await response.json();
+                const responseTime = Date.now() - startTime;
+                
+                // Update stats
+                messageCount++;
+                totalResponseTime += responseTime;
+                document.getElementById('messageCount').textContent = messageCount;
+                document.getElementById('avgResponseTime').textContent = 
+                    Math.round(totalResponseTime / messageCount) + 'ms';
+                
+                if (response.ok) {
+                    const reply = data.enhanced_response || data.basic_response || 
+                                 'I understand your message. How can I help you?';
+                    addToConversation('assistant', reply);
+                } else {
+                    addToConversation('assistant', 'Sorry, I encountered an error processing your message.');
+                }
+            } catch (error) {
+                addToConversation('assistant', 'Connection error. Please try again.');
+            }
+        }
+        
+        function addToConversation(role, content) {
+            const conversation = document.getElementById('conversation');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${role}`;
+            
+            const time = new Date().toLocaleTimeString();
+            messageDiv.innerHTML = `
+                <div class="message-header">${role === 'user' ? 'You' : 'ECHO'} • ${time}</div>
+                <div>${content}</div>
+            `;
+            
+            conversation.appendChild(messageDiv);
+            conversation.scrollTop = conversation.scrollHeight;
+        }
+        
+        // Initialize
+        checkLLMStatus();
+        
+        // Add some sample quick messages
+        const sampleMessages = [
+            "What's on my schedule today?",
+            "Can you help me with the budget report?",
+            "Schedule a meeting with the team",
+            "I need to review the project status",
+            "Send a follow-up email to the client"
+        ];
+        
+        // Periodically check LLM status
+        setInterval(checkLLMStatus, 30000);
+        
+        // Learning system variables
+        let currentMessageId = null;
+        let currentResponse = null;
+        
+        // Update message processing to capture response
+        const originalProcessMessage = document.getElementById('messageForm').onsubmit;
+        document.getElementById('messageForm').addEventListener('submit', async (e) => {
+            // Let original handler run first
+            await originalProcessMessage?.call(this, e);
+            
+            // Capture the response for learning
+            const responseDiv = document.getElementById('messageResult');
+            if (responseDiv && responseDiv.textContent) {
+                const responseMatch = responseDiv.textContent.match(/Suggested Response:\s*(.+)/s);
+                if (responseMatch) {
+                    currentMessageId = `msg_${Date.now()}`;
+                    currentResponse = responseMatch[1].trim();
+                    showResponseForFeedback(currentResponse);
+                }
+            }
+        });
+        
+        // Show response for feedback
+        function showResponseForFeedback(response) {
+            document.getElementById('responseContent').textContent = response;
+            document.getElementById('lastResponse').style.display = 'block';
+            document.getElementById('editedResponse').value = response;
+        }
+        
+        // Submit feedback
+        async function submitFeedback(feedbackType) {
+            if (!currentMessageId || !currentResponse) return;
+            
+            try {
+                const response = await fetch(`${API_BASE}/learning/feedback`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message_id: currentMessageId,
+                        feedback_type: feedbackType,
+                        original_response: currentResponse,
+                        context: {
+                            platform: document.getElementById('platform').value,
+                            sender: document.getElementById('sender').value
+                        }
+                    })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    updateInsights(data.insights);
+                    showFeedbackSuccess(feedbackType);
+                }
+            } catch (error) {
+                console.error('Error submitting feedback:', error);
+            }
+        }
+        
+        // Show edit area
+        function showEditArea() {
+            document.getElementById('editArea').style.display = 'block';
+        }
+        
+        // Submit edited response
+        async function submitEditedResponse() {
+            if (!currentMessageId || !currentResponse) return;
+            
+            const editedResponse = document.getElementById('editedResponse').value;
+            
+            try {
+                const response = await fetch(`${API_BASE}/learning/feedback`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message_id: currentMessageId,
+                        feedback_type: 'edited',
+                        original_response: currentResponse,
+                        edited_response: editedResponse,
+                        context: {
+                            platform: document.getElementById('platform').value,
+                            sender: document.getElementById('sender').value
+                        }
+                    })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    updateInsights(data.insights);
+                    showFeedbackSuccess('edited');
+                    document.getElementById('editArea').style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Error submitting edited response:', error);
+            }
+        }
+        
+        // Update insights display
+        function updateInsights(insights) {
+            if (!insights || insights.length === 0) return;
+            
+            const insightsDiv = document.getElementById('insights');
+            insightsDiv.innerHTML = insights.map(insight => `
+                <div class="insight-item">
+                    <strong>${insight.type}:</strong> ${insight.message}
+                    <span style="color: #94a3b8; font-size: 12px;"> (${(insight.confidence * 100).toFixed(0)}% confidence)</span>
+                </div>
+            `).join('');
+        }
+        
+        // Show feedback success
+        function showFeedbackSuccess(type) {
+            const feedbackButtons = document.querySelector('.feedback-buttons');
+            const originalHTML = feedbackButtons.innerHTML;
+            
+            const messages = {
+                approved: '✅ Response approved!',
+                rejected: '❌ Response rejected!',
+                edited: '✏️ Response updated!'
+            };
+            
+            feedbackButtons.innerHTML = `<div style="color: #10b981; text-align: center; width: 100%;">${messages[type]}</div>`;
+            
+            setTimeout(() => {
+                feedbackButtons.innerHTML = originalHTML;
+                document.getElementById('lastResponse').style.display = 'none';
+            }, 2000);
+        }
+        
+        // Fetch learning trends
+        async function fetchLearningTrends() {
+            try {
+                const response = await fetch(`${API_BASE}/learning/trends?days=7`);
+                if (response.ok) {
+                    const data = await response.json();
+                    displayTrends(data.trends);
+                }
+            } catch (error) {
+                console.error('Error fetching trends:', error);
+            }
+        }
+        
+        // Display learning trends
+        function displayTrends(trends) {
+            const insightsDiv = document.getElementById('insights');
+            insightsDiv.innerHTML = `
+                <h4>7-Day Learning Trends</h4>
+                <div class="insight-item">
+                    <strong>Approval Rate:</strong> ${(trends.approval_rate_trend?.[trends.approval_rate_trend.length - 1]?.approval_rate * 100 || 0).toFixed(1)}%
+                </div>
+                <div class="insight-item">
+                    <strong>Common Improvements:</strong>
+                    <ul style="margin: 5px 0; padding-left: 20px;">
+                        ${(trends.improvement_areas || []).map(area => `<li>${area}</li>`).join('')}
+                    </ul>
+                </div>
+                <div class="insight-item">
+                    <strong>User Satisfaction Trend:</strong> ${
+                        trends.user_satisfaction_trend?.[trends.user_satisfaction_trend.length - 1]?.satisfaction 
+                        ? '📈 Improving' : '📊 Stable'
+                    }
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
