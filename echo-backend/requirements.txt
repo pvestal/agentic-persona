@@ -34,7 +34,7 @@ black==23.12.1
 flake8==7.0.0
 
 # AI/LLM
-openai==1.10.0
+openai>=1.13.3
 anthropic==0.13.0
 tiktoken==0.5.2
 
