@@ -25,24 +25,24 @@ jobs:
     
     - name: Install dependencies
       run: |
-        cd persona-backend
+        cd echo-backend
         pip install -r requirements.txt
     
     - name: Run Evolution Analysis
       env:
         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       run: |
-        cd persona-backend
+        cd echo-backend
         python -m agents.evolution_engine analyze
     
     - name: Generate Evolution Report
       run: |
-        cd persona-backend
+        cd echo-backend
         python -m agents.evolution_engine report > ../evolution/latest_report.json
     
     - name: Update Documentation
       run: |
-        cd persona-backend
+        cd echo-backend
         python -m agents.documentation_updater
     
     - name: Commit Evolution Changes
