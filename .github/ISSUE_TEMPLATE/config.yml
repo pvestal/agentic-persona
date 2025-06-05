@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 Discord Community
+    url: https://discord.gg/boardai
+    about: Get help from the community in real-time
+  - name: 📚 Documentation
+    url: https://docs.boardofdirectors.ai
+    about: Check our comprehensive documentation
+  - name: 🔒 Security Issues
+    url: mailto:security@boardofdirectors.ai
+    about: Please report security vulnerabilities privately

@@ -1,6 +1,6 @@
-# Contributing to Agentic Persona
+# 🤝 Contributing to Board of Directors AI
 
-First off, thank you for considering contributing to Agentic Persona! This project thrives on community involvement and continuously learns from every contribution.
+First off, thank you for considering contributing to Board of Directors AI! 🎉 It's people like you that make this project such an amazing AI-powered executive team.
 
 ## 🤖 How This Project Learns From You
 
